@@ -61,7 +61,6 @@ def get_feature_data():
     val_data, val_labels = _get_data_and_labels(features, labels, val_idxs)
     test_data, test_labels = _get_data_and_labels(features, labels, test_idxs)
     return train_data, train_labels, val_data, val_labels, test_data, test_labels
-
     
 
 if __name__ == "__main__":

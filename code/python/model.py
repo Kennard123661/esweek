@@ -15,6 +15,8 @@ LABEL_VALUES = [1,2,3,4,5,6,7,8,9,10]
 def _parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', type=int, default=0, help='seed for random ops')
+    parser.add_argument('--epoch', type=int, default=50, help='seed for random ops')
+    parser.add_argument('--gpu', type=int, default=1, help='seed for random ops')
     args = parser.parse_args()
     return args
 
@@ -29,11 +31,16 @@ def bin_data_and_labels(data, labels):
     return binned_data, binned_labels, binned_ids
 
 class Model:
-    def __init__(self, sess, margin=1, regularization_factor=10e-5, batch_size=1000):
+    def __init__(self, sess, learning_rate=3e-4, margin=1, regularization_factor=10e-5, batch_size=1000):
         self._sess = sess        
         self._batch_size = batch_size
         self._regularization_factor = regularization_factor
         self._margin = margin
+        self._learning_rate = learning_rate
+
+        self._build_model()
+        self._setup_train_ops()
+
 
     def _build_model(self):
         self._regularization_loss = 0
@@ -68,6 +75,9 @@ class Model:
         triplet_loss = tf.reduce_mean(self.triplet_loss)
         return triplet_loss
 
+    def _setup_train_ops(self):
+        self.train_op = tf.train.AdamOptimizer(learning_rate=self._learning_rate).minimize(self.loss)
+
     def _get_cls_loss(self, labels, logits):
         return tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits)
 
@@ -85,8 +95,16 @@ class Model:
             self._regularization_loss += tf.nn.l2_loss(out) * self._regularization_factor
         return feature_out, out
 
-    def train(self, train_anchor, train_pos, train_neg, train_labels):
-        pass
+    def train(self, train_anchor, train_pos, train_neg, \
+            anchor_labels, positive_labels, negative_labels):
+        loss, _ = self._sess.run([self.loss, self.train_op], feed_dict={
+            self.anchor: train_anchor,
+            self.positive: train_pos,
+            self.negative: train_neg,
+            self.anchor_labels: anchor_labels,
+            self.positive_labels: positive_labels,
+            self.negative_labels: negative_labels
+        })
         
 
     def evaluate(self, data, labels):
@@ -110,10 +128,28 @@ def get_training_triplets(data, labels):
         label = labels[i]
         
         pos_bin = binned_data[label - 1]
-        positives.append(pos_bin[np.random.rand()])
+        rand_idx = np.random.randint(len(pos_bin), size=[1])[0]
         
-    
-    
+        # positive data
+        positives.append(pos_bin[rand_idx])
+        
+        # negative data
+        other_labels = [i for i in range(LABEL_VALUES) if (i+1) != label]
+        while True:
+            rand_idx = np.random.randint(len(data), size=[1])[0]
+            neg_label = labels[rand_idx]
+            if neg_label != label:
+                negatives.append(data[rand_idx])
+                negative_labels.append(neg_label)
+                break
+    assert len(positives) == len(negatives)
+    assert len(data) == len(positives)
+    assert len(positive_labels) == len(positives)
+    assert len(negative_labels) == len(negatives)
+    assert len(data) == len(labels)
+    return shuffled_data, shuffled_labels, positives, positive_labels, \
+        negatives, negative_labels
+
     
 
 if __name__ == "__main__":
@@ -122,3 +158,14 @@ if __name__ == "__main__":
     # set the random seed for repeatability of experimental results
     np.random.seed(seed=args.seed)
     tf.random.set_random_seed(seed=args.seed)
+    sess = tf.Session()
+    model = Model(sess)
+
+    max_epochs = args.epoch
+    for _ in range(max_epochs):
+        anchor_data, anchor_labels, positive_data, positive_labels, \
+            negative_data, negative_labels = get_training_triplets(train_data, train_labels)
+        model.train(anchor_data, positive_data, negative_data, \
+            anchor_labels, positive_labels, negative_labels)
+        model.evaluate(test_data, test_labels)
+    sess.close()
