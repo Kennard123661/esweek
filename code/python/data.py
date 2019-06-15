@@ -52,14 +52,15 @@ def get_feature_data():
     feature_variance = feature_data['feature_variance_vector']
     labels = feature_data['label_vector']
     
-    train_idxs = np.reshape(feature_data['train_idx'], [-1])
-    val_idxs = np.reshape(feature_data['xval_idx'], [-1])
-    test_idxs = np.reshape(feature_data['test_idx'], [-1])
+    train_idxs = np.reshape(feature_data['train_idx'], [-1]) - 1
+    val_idxs = np.reshape(feature_data['xval_idx'], [-1]) - 1
+    test_idxs = np.reshape(feature_data['test_idx'], [-1]) - 1
 
     features = normed_features[:,:NUM_INPUT_FEATURES]
     train_data, train_labels = _get_data_and_labels(features, labels, train_idxs)
     val_data, val_labels = _get_data_and_labels(features, labels, val_idxs)
     test_data, test_labels = _get_data_and_labels(features, labels, test_idxs)
+
     return train_data, train_labels, val_data, val_labels, test_data, test_labels
     
 
