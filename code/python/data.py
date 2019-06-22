@@ -24,6 +24,8 @@ HarStretch = namedtuple('HarStretch', \
 NUM_FEATURES_TO_NORMALIZE = 119
 NUM_INPUT_FEATURES = 120
 
+UNDEFINED_LABEL = 10
+
 def read_csv_file(filepath):
     """ Reads csv file """
     assert filepath.split('.')[-1] == 'csv'
@@ -43,6 +45,9 @@ def get_data():
 
 def _get_data_and_labels(features, labels, idxs):
     return features[idxs], labels[idxs]
+
+def remove_undefined_data(data, labels):
+    undefined_data == 10
 
 def get_feature_data():
     """ Returns features """
