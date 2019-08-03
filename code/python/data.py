@@ -16,21 +16,21 @@ stretch_filepath = os.path.join(data_dir, stretch_filename)
 
 feature_filepath = os.path.join(BASE_DIR, 'data', 'baseline_classifier', 'features_file.mat')
 
-HarMotion = namedtuple('HarMotion', \
-    'time user scenario trial window ax ay az gx gy gz label')
-HarStretch = namedtuple('HarStretch', \
-    'time user scenario trial window stretch label')
+HarMotion = namedtuple('HarMotion', 'time user scenario trial window ax ay az gx gy gz label')
+HarStretch = namedtuple('HarStretch', 'time user scenario trial window stretch label')
 
 NUM_FEATURES_TO_NORMALIZE = 119
 NUM_INPUT_FEATURES = 120
 
 UNDEFINED_LABEL = 10
 
+
 def read_csv_file(filepath):
     """ Reads csv file """
     assert filepath.split('.')[-1] == 'csv'
     data = pandas.read_csv(filepath).reset_index()
     return np.array(data.values)
+
 
 def get_data():
     """ Returns Human Activity Recognition Data (HAR) as motion and 
@@ -43,11 +43,13 @@ def get_data():
         HarStretch(*har_stretch) for har_stretch in har_stretchs])
     return har_motions, har_stretchs
 
+
 def _get_data_and_labels(features, labels, idxs):
     return features[idxs], labels[idxs]
 
-def remove_undefined_data(data, labels):
-    undefined_data == 10
+# def remove_undefined_data(data, labels):
+#     undefined_data == 10
+
 
 def get_feature_data():
     """ Returns features """

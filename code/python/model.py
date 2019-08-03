@@ -3,7 +3,6 @@ import tensorflow as tf
 
 from data import get_feature_data
 from data import NUM_INPUT_FEATURES
-from tqdm import tqdm
 import numpy as np
 
 import argparse
@@ -14,7 +13,6 @@ train_data, train_labels, val_data, val_labels, \
 LABEL_VALUES = [1,2,3,4,5,6,7,8,9,10]
 
 
-
 def _parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', type=int, default=0, help='seed for random ops')
@@ -22,6 +20,7 @@ def _parse_arguments():
     parser.add_argument('--gpu', type=int, default=0, help='seed for random ops')
     args = parser.parse_args()
     return args
+
 
 def bin_data_and_labels(data, labels):
     # print(data.shape)
@@ -34,6 +33,7 @@ def bin_data_and_labels(data, labels):
         binned_labels.append(labels[binned_idxs])
         binned_ids.append(binned_idxs)
     return binned_data, binned_labels, binned_ids
+
 
 class Model:
     def __init__(self, sess, learning_rate=3e-4, margin=0.5, regularization_factor=10e-5, batch_size=1000):
@@ -113,7 +113,6 @@ class Model:
             self.positive_labels: positive_labels,
             self.negative_labels: negative_labels
         })
-        
 
     def evaluate(self, data, labels):
         predictions = self._sess.run(self.predictions, feed_dict={self.anchor: data})
@@ -124,6 +123,7 @@ class Model:
         is_equal = predictions == labels
         accuracy = np.count_nonzero(is_equal) / len(labels)
         print('accuracy is %d', accuracy)
+
 
 def get_training_triplets(data, labels):
     binned_data, binned_labels, binned_ids = bin_data_and_labels(data, labels)
@@ -157,14 +157,9 @@ def get_training_triplets(data, labels):
     assert len(positive_labels) == len(positives)
     assert len(negative_labels) == len(negatives)
     assert len(data) == len(labels)
-    # print(np.array(negatives).shape)
-    # print(np.array(positives).shape)
-    # print(np.array(shuffled_data).shape)
-    # exit()
     return shuffled_data, shuffled_labels, positives, positive_labels, \
         negatives, negative_labels
 
-    
 
 if __name__ == "__main__":
     args = _parse_arguments()
